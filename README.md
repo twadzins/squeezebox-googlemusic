@@ -171,3 +171,9 @@ are some things you may help on:
   iPeng?
 * Support for creating and deleting radio stations
 * Improve Track and Album Info
+
+T3 TODO
+----
+* np track menu
+* add to 'most recent' playlist
+
