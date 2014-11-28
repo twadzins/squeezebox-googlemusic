@@ -19,9 +19,15 @@ my $prefs = preferences('plugin.googlemusic');
 my $googleapi = Plugins::GoogleMusic::GoogleAPI::get();
 
 my $playlists = {};
-my $mostRecentGMPlaylist;
+my $mostRecentPlaylist;
+my $markForRefresh = 0;
 
 sub feed {
+	if ($markForRefresh) {
+		#playlists are not up to date (due, for instance, to user having add a track to one)
+		$markForRefresh = 0;
+		refresh();
+	}
 	my ($client, $callback, $args) = @_;
 
 	my @items;
@@ -63,13 +69,13 @@ sub getAddToGMMenuItems {
 
 	my $items = [];
 	
-	my $mostRecentGMPlaylist = getMostRecentGmPlaylist();
-	if ($mostRecentGMPlaylist) {
+	my $mostRecentPlaylist = getMostRecentPlaylist();
+	if ($mostRecentPlaylist) {
 		push @$items, {
 			type  => 'link',
-			name  => cstring($client, "PLUGIN_GOOGLEMUSIC_ADD_TO") . " " . $mostRecentGMPlaylist->{name},
+			name  => cstring($client, "PLUGIN_GOOGLEMUSIC_ADD_TO") . " " . $mostRecentPlaylist->{name},
 			url   => \&addTrackToGm,
-			passthrough => [$mostRecentGMPlaylist, $track ],
+			passthrough => [$mostRecentPlaylist, $track ],
 			nextWindow => 'parent',
 			forceRefresh => 1,
 			favorites => 0,
@@ -89,7 +95,7 @@ sub getAddToGMMenuItems {
 
 sub addTrackToGm {
 	my ($client, $callback, $args, $playlist, $track) = @_;
-	$mostRecentGMPlaylist = $playlist;
+	$mostRecentPlaylist = $playlist;
 	
 	my $uri = $track->{'uri'};
 	my ($trackId) = $uri =~ m{^googlemusic:track:(.*)$}x;
@@ -97,9 +103,9 @@ sub addTrackToGm {
 
 	my $googleResult = $googleapi->add_songs_to_playlist($playlistId, $trackId);
 	if ($@) {
-        $log->error("Not able to add_songs_to_playlist: $@");
-        return;
-    }
+		$log->error("Not able to add_songs_to_playlist: $@");
+		return;
+	}
 
 	$callback->({
 		items => [{
@@ -110,17 +116,17 @@ sub addTrackToGm {
 		}]
 	}) if $callback;
 
-	# refresh playlists so that new track appears
-	refresh();
+	# mark playlist for refresh so that new track appears
+	$markForRefresh = 1;
 	
 	return;
 }
 
-sub getMostRecentGmPlaylist {
-	return $mostRecentGMPlaylist;
+sub getMostRecentPlaylist {
+	return $mostRecentPlaylist;
 }
 
-sub _newGmPlaylistMenuItem {
+sub _newPlaylistMenuItem {
 	my ($client, $playlist, $track) = @_;
 
 	return {
@@ -141,7 +147,7 @@ sub newAddTrackToGmMenu {
 	my @items;
 
 	foreach (sort {lc($a->{name}) cmp lc($b->{name})} values %$playlists) {
-		push @items, _newGmPlaylistMenuItem($client, $_, $track);
+		push @items, _newPlaylistMenuItem($client, $_, $track);
 	}
 
 	if (!scalar @items) {

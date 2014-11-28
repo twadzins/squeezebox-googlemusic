@@ -108,9 +108,9 @@ sub initPlugin {
 		func  => \&ratingMenu,
 	) );
 
-	Slim::Menu::TrackInfo->registerInfoProvider( googlemusicAddToGMPlaylist => (
+	Slim::Menu::TrackInfo->registerInfoProvider( googlemusicAddToPlaylist => (
 		after => 'playitem',
-		func  => \&addToGmPlaylistMenu,
+		func  => \&addToPlaylistMenu,
 	) );
 
 	Slim::Menu::TrackInfo->registerInfoProvider( googlemusicStartRadio => (
@@ -403,7 +403,7 @@ sub trackInfoMenu {
 	return $item;
 }
 
-sub addToGmPlaylistMenu {
+sub addToPlaylistMenu {
 	my ($client, $url, $track, $remoteMeta) = @_;
 
 	return unless $client;

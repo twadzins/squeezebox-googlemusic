@@ -198,10 +198,10 @@ PLUGIN_GOOGLEMUSIC_ADD_TO
 	EN	Add to
 
 PLUGIN_GOOGLEMUSIC_ADD_TO_PLAYLIST
-	EN	Add to GM playlist
+	EN	Add to playlist (Google Music)
 
 PLUGIN_GOOGLEMUSIC_ADDED_TO_PLAYLIST
-	EN	Added to GM playlist
+	EN	Added to
 
 ARTIST_ALBUMS_SORT_METHOD
 	DE	Sortierverfahren für Alben eines Interpreten
