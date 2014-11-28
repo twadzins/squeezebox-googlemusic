@@ -194,6 +194,15 @@ PLUGIN_GOOGLEMUSIC_ON_GOOGLEMUSIC
 	RU	На Google Music
 	SV	På Google Music
 
+PLUGIN_GOOGLEMUSIC_ADD_TO
+	EN	Add to
+
+PLUGIN_GOOGLEMUSIC_ADD_TO_PLAYLIST
+	EN	Add to GM playlist
+
+PLUGIN_GOOGLEMUSIC_ADDED_TO_PLAYLIST
+	EN	Added to GM playlist
+
 ARTIST_ALBUMS_SORT_METHOD
 	DE	Sortierverfahren für Alben eines Interpreten
 	EN	Artist Albums Sort Method

@@ -19,6 +19,7 @@ my $prefs = preferences('plugin.googlemusic');
 my $googleapi = Plugins::GoogleMusic::GoogleAPI::get();
 
 my $playlists = {};
+my $mostRecentGMPlaylist;
 
 sub feed {
 	my ($client, $callback, $args) = @_;
@@ -55,6 +56,107 @@ sub _showPlaylist {
 	};
 
 	return $item;
+}
+
+sub getAddToGMMenuItems {
+	my ($client, $track) = @_;
+
+	my $items = [];
+	
+	my $mostRecentGMPlaylist = getMostRecentGmPlaylist();
+	if ($mostRecentGMPlaylist) {
+		push @$items, {
+			type  => 'link',
+			name  => cstring($client, "PLUGIN_GOOGLEMUSIC_ADD_TO") . " " . $mostRecentGMPlaylist->{name},
+			url   => \&addTrackToGm,
+			passthrough => [$mostRecentGMPlaylist, $track ],
+			nextWindow => 'parent',
+			forceRefresh => 1,
+			favorites => 0,
+		};
+	}
+	
+	push @$items, {
+
+		type  => 'link',
+		name  => cstring($client, "PLUGIN_GOOGLEMUSIC_ADD_TO_PLAYLIST"),
+		url   => \&newAddTrackToGmMenu,
+		passthrough => [ $track ],
+	};
+
+	return $items;
+}
+
+sub addTrackToGm {
+	my ($client, $callback, $args, $playlist, $track) = @_;
+	$mostRecentGMPlaylist = $playlist;
+	
+	my $uri = $track->{'uri'};
+	my ($trackId) = $uri =~ m{^googlemusic:track:(.*)$}x;
+	my ($playlistId) = $playlist->{'uri'} =~ m{^googlemusic:playlist:(.*)$}x;
+
+	my $googleResult = $googleapi->add_songs_to_playlist($playlistId, $trackId);
+	if ($@) {
+        $log->error("Not able to add_songs_to_playlist: $@");
+        return;
+    }
+
+	$callback->({
+		items => [{
+			type => 'text',
+			name => cstring($client, 'PLUGIN_GOOGLEMUSIC_ADDED_TO_PLAYLIST') . ' ' . $playlist->{'name'},
+			showBriefly => 1,
+			popback => 2
+		}]
+	}) if $callback;
+
+	# refresh playlists so that new track appears
+	refresh();
+	
+	return;
+}
+
+sub getMostRecentGmPlaylist {
+	return $mostRecentGMPlaylist;
+}
+
+sub _newGmPlaylistMenuItem {
+	my ($client, $playlist, $track) = @_;
+
+	return {
+		name => $playlist->{'name'},
+		type => 'link',
+		url => \&addTrackToGm,
+		passthrough => [ $playlist, $track ],
+		nextWindow => 'parent',
+		forceRefresh => 1,
+		favorites => 0,
+	}	
+
+}
+
+sub newAddTrackToGmMenu {
+	my ($client, $callback, $args, $track) = @_;
+
+	my @items;
+
+	foreach (sort {lc($a->{name}) cmp lc($b->{name})} values %$playlists) {
+		push @items, _newGmPlaylistMenuItem($client, $_, $track);
+	}
+
+	if (!scalar @items) {
+		push @items, {
+			'name' => cstring($client, 'EMPTY'),
+			'type' => 'text',
+		}
+
+	}
+
+	$callback->({
+		items => \@items,
+	});
+
+	return;
 }
 
 # Reload and reparse all playlists

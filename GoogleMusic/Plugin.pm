@@ -108,6 +108,11 @@ sub initPlugin {
 		func  => \&ratingMenu,
 	) );
 
+	Slim::Menu::TrackInfo->registerInfoProvider( googlemusicAddToGMPlaylist => (
+		after => 'playitem',
+		func  => \&addToGmPlaylistMenu,
+	) );
+
 	Slim::Menu::TrackInfo->registerInfoProvider( googlemusicStartRadio => (
 		after => 'middle',
 		func  => \&startRadioMenu,
@@ -396,6 +401,16 @@ sub trackInfoMenu {
 	}
 
 	return $item;
+}
+
+sub addToGmPlaylistMenu {
+	my ($client, $url, $track, $remoteMeta) = @_;
+
+	return unless $client;
+
+	return unless $url =~ '^googlemusic:track:';
+
+	return Plugins::GoogleMusic::Playlists::getAddToGMMenuItems($client, Plugins::GoogleMusic::Library::get_track($url));
 }
 
 # Trackinfo Rating Menu for Like/Dislike

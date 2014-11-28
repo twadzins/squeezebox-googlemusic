@@ -110,6 +110,11 @@ sub _trackInfo {
 	# date. Should be fast as it comes from our cache.
 	my $rating = Plugins::GoogleMusic::Library::get_track($track->{uri})->{rating};
 
+	my $addToGmMenuItems = Plugins::GoogleMusic::Playlists::getAddToGMMenuItems($client, $track);
+	for my $item (@$addToGmMenuItems) {
+		push @$trackInfo, $item;
+	}
+	
 	push @$trackInfo, {
 		name => cstring($client, ($rating >= 4) ? 'PLUGIN_GOOGLEMUSIC_UNLIKE' : 'PLUGIN_GOOGLEMUSIC_LIKE'),
 		type => 'link',
