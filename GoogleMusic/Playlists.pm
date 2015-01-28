@@ -20,14 +20,8 @@ my $googleapi = Plugins::GoogleMusic::GoogleAPI::get();
 
 my $playlists = {};
 my $mostRecentPlaylist;
-my $markForRefresh = 0;
 
 sub feed {
-	if ($markForRefresh) {
-		#playlists are not up to date (due, for instance, to user having add a track to one)
-		$markForRefresh = 0;
-		refresh();
-	}
 	my ($client, $callback, $args) = @_;
 
 	my @items;
@@ -116,8 +110,8 @@ sub addTrackToGm {
 		}]
 	}) if $callback;
 
-	# mark playlist for refresh so that new track appears
-	$markForRefresh = 1;
+	#Add track to the local copy of the playlist
+	push @{$playlist->{tracks}}, $track;
 	
 	return;
 }
